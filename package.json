@@ -1,0 +1,30 @@
+{
+  "name": "board-wolf",
+  "version": "0.1.0",
+  "description": "Message board layer for Wolf's applications",
+  "main": "index.js",
+  "engines": {
+    "node": "~4.2.x",
+    "npm": "~2.14.x"
+  },
+  "scripts": {
+    "startHeroku": "NODE_ENV=heroku node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Aldo Ambrosioni",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.15.0",
+    "cors": "^2.7.1",
+    "express": "^4.13.4",
+    "jsonwebtoken": "^5.7.0",
+    "mongoose": "^4.4.9",
+    "morgan": "^1.7.0",
+    "winston": "^2.2.0",
+    "winston-loggly": "^1.3.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/haldoh/board-wolf.git"
+  }
+}
