@@ -59,6 +59,8 @@ module.exports = function () {
 	app.use('/docs', express.static('docs'));
 	// Static/generic routes
 	app.use('/', require('../routes/static'));
+	// Board routes
+	app.use('/board', require('../routes/board'));
 
 	/*
 	 * HTTP server setup

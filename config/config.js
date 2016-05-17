@@ -25,8 +25,14 @@ var config = {
 		jwtSecret: 'localJwtSecret',
 		morgan: 'REQ :remote-addr - :remote-user  ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" - :response-time',
 		token: 'localhost_web_token',
+		auth: {
+			endpoint: 'http://localhost:3000',
+			platform: 'web-wolf',
+			token: 'localhost_web_token'
+		},
 		mongo: {
-			uri: 'mongodb://localhost:27017/board'
+			uri: 'mongodb://localhost:27017/board',
+			name: 'board'
 		}
 	},
 
@@ -38,8 +44,14 @@ var config = {
 		jwtSecret: process.env.JWT_SECRET,
 		morgan: 'REQ :remote-addr - :remote-user  ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" - :response-time',
 		token: process.env.AUTH_TOKEN,
+		auth: {
+			endpoint: 'https://auth-wolf.herokuapp.com',
+			platform: process.env.PLATFORM,
+			token: process.env.AUTH_TOKEN
+		},
 		mongo: {
-			uri: process.env.MONGOLAB_URI
+			uri: process.env.MONGOLAB_URI,
+			name: 'board'
 		}
 	}
 };
