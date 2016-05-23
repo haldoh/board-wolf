@@ -43,7 +43,7 @@ var config = {
 		port: process.env.PORT,
 		jwtSecret: process.env.JWT_SECRET,
 		morgan: 'REQ :remote-addr - :remote-user  ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" - :response-time',
-		token: process.env.AUTH_TOKEN,
+		token: process.env.BOARD_TOKEN,
 		auth: {
 			endpoint: 'https://auth-wolf.herokuapp.com',
 			platform: process.env.PLATFORM,
