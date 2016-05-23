@@ -22,8 +22,8 @@ var error = require('../config/error');
 module.exports.checkApiToken = function (req, res, next) {
 
 	// Try to get headers required for calls
-	var platform = req.headers.hasOwnProperty('x-wolf-voip-platform') ? req.headers['x-wolf-voip-platform'] : -1;
-	var token = req.headers.hasOwnProperty('x-wolf-voip-token') ? req.headers['x-wolf-voip-token'] : -1;
+	var platform = req.headers.hasOwnProperty('x-wolf-platform') ? req.headers['x-wolf-platform'] : -1;
+	var token = req.headers.hasOwnProperty('x-wolf-token') ? req.headers['x-wolf-token'] : -1;
 
 	// Check token
 	if (platform !== -1 && token !== -1 && token === config.token) {

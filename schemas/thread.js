@@ -5,7 +5,7 @@
 // Requires
 var mongoose = require('mongoose');
 
-var Message = mongoose.model('BoardMessage');
+var Message = mongoose.xBoard.model('BoardMessage');
 var MessageSchema = require('./message').schema;
 
 // Schema for a board thread
@@ -13,8 +13,6 @@ var BoardThreadSchema = new mongoose.Schema({
 	title: { type: String, required: true },
 	text: { type: String, required: true },
 	author: { type: String, required: true },
-	country: { type: String, required: true },
-	language: { type: String, required: true },
 	time: { type: Date, 'default': Date.now },
 	updated: { type: Date, index: true, 'default': Date.now },
 	upvotes: { type: Number, 'default': 0 },
@@ -134,4 +132,4 @@ BoardThreadSchema.methods.downvoteComment = function (messageId, commentId, prev
 	msg.downvoteComment(commentId, prevVote, this, callback);
 };
 
-module.exports = mongoose.model('BoardThread', BoardThreadSchema);
+module.exports = mongoose.xBoard.model('BoardThread', BoardThreadSchema);

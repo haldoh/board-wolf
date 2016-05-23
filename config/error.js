@@ -42,6 +42,11 @@ var error = {
 				'error_code': '3',
 				'error_name': 'ServiceAuthenticationError',
 				'error_desc': 'Service not authenticated.'
+			},
+			'4': {
+				'error_code': '4',
+				'error_name': 'PermissionsError',
+				'error_desc': 'Insufficient permissions.'
 			}
 		}
 	},

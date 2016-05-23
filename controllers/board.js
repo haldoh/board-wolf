@@ -15,8 +15,8 @@ var errors = require('../config/error');
 
 var User = require('../models/user');
 
-var BoardThread = require('mongoose').model('BoardThread');
-var UserVote = require('mongoose').model('UserVote');
+var BoardThread = require('mongoose').xBoard.model('BoardThread');
+var UserVote = require('mongoose').xBoard.model('UserVote');
 
 /*** MIDDLEWARE ***/
 
@@ -60,7 +60,7 @@ module.exports.userOwnsThread = function (req, res, next) {
 	if (req.thread.author === req.tokenUser.id)
 		next();
 	else
-		errors.send('Unauthorized', 'debug', res, 'User does not own the thread.');
+		errors.send('401', '4', 'debug', res, 'controllers.board.userOwnsThread', 'User does not own the thread.');
 };
 
 // Check if user owns a message
@@ -69,7 +69,7 @@ module.exports.userOwnsMessage = function (req, res, next) {
 	if (msg.author === req.tokenUser.id)
 		next();
 	else
-		errors.send('Unauthorized', 'debug', res, 'User does not own the message.');
+		errors.send('401', '4', 'debug', res, 'controllers.board.userOwnsMessage', 'User does not own the message.');
 };
 
 // Check if user owns a comment
@@ -78,7 +78,7 @@ module.exports.userOwnsComment = function (req, res, next) {
 	if (com.author === req.tokenUser.id)
 		next();
 	else
-		errors.send('Unauthorized', 'debug', res, 'User does not own the comment.');
+		errors.send('401', '4', 'debug', res, 'controllers.board.userOwnsComment', 'User does not own the comment.');
 };
 
 /*** PARAM ***/
@@ -87,9 +87,9 @@ module.exports.userOwnsComment = function (req, res, next) {
 module.exports.threadParam = function (req, res, next, threadid) {
 	BoardThread.findById(req.params.threadid, function (err, thread) {
 		if (err)
-			errors.send('DBError', 'warn', res, 'Thread ID validation error: ' + err);
+			errors.send('500', '1', 'warn', res, 'controllers.board.threadParam', 'Thread ID validation error: ' + err);
 		else if (!thread)
-			errors.send('BadParameter', 'debug', res, 'Thread ID validation error: no thread found for given ID.');
+			errors.send('400', '2', 'debug', res, 'controllers.board.threadParam', 'Thread ID validation error - no thread found for given ID: ' + req.params.threadid);
 		else {
 			req.thread = thread;
 			next();
@@ -149,7 +149,7 @@ module.exports.listThreads = function (req, res, next) {
 	// Find threads
 	BoardThread.find(query, projection).sort(sort).skip(offset).limit(number).exec(function (err, threads) {
 		if (err)
-			errors.send('DBError', 'warn', res, 'New message error: ' + err);
+			errors.send('500', '1', 'warn', res, 'controllers.board.listThreads', 'Error retrieving threads: ' + err);
 		else {
 
 			// Save data for next queries, and reorganize threads
@@ -168,15 +168,23 @@ module.exports.listThreads = function (req, res, next) {
 				});
 			} else {
 				// Get threads' authors data
-				User.getByIds(users, req.headers['x-wolf-user-token'], function (uErr, authors) {
+				User.getByIds(users, req.headers['x-wolf-user-token'], function (uErr, uResp, authors) {
 					if (uErr)
-						errors.send('DBError', 'warn', res, 'List threads error - error rertieving authors\' data: ' + uErr);
+						errors.send('500', '1', 'warn', res, 'controllers.board.listThreads', 'Error retrieving authors\' data: ' + uErr);
 					else {
+
+						var authorObj = [];
+						try {
+							authorObj = JSON.parse(authors);
+						} catch (e) {
+							// Failed to parse author data, log and proceed without
+							logger.warn('Failed to parse authors\' data: ' + authors);
+						}
 
 						// Put authors' data in a more usable object
 						var authorData = {};
-						for (var j = 0; j < authors.length; j += 1)
-							authorData[authors[j].id] = authors[j];
+						for (var j = 0; j < authorObj.length; j += 1)
+							authorData[authorObj[j]._id] = authorObj[j];
 
 						// Get logged user's votes
 						UserVote.find({
@@ -186,7 +194,7 @@ module.exports.listThreads = function (req, res, next) {
 							}
 						}, function (vErr, votes) {
 							if (vErr)
-								errors.send('DBError', 'warn', res, 'List threads error - error rertieving user\'s votes: ' + vErr);
+								errors.send('500', '1', 'warn', res, 'controllers.board.listThreads', 'Error retrieving users\' votes: ' + vErr);
 							else {
 								// Put user's votes data in a more usable object
 								var userVotes = {};
@@ -288,15 +296,23 @@ module.exports.getThread = function (req, res, next) {
 	}
 
 	// Get threads' authors data
-	User.getByIds(authorsIds, req.headers['x-wolf-user-token'], function (uErr, authors) {
+	User.getByIds(authorsIds, req.headers['x-wolf-user-token'], function (uErr, uResp, authors) {
 		if (uErr)
-			errors.send('DBError', 'warn', res, 'List threads error - error rertieving authors\' data: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.listThreads', 'Error retrieving authors\' data: ' + uErr);
 		else {
+
+			var authorObj = [];
+			try {
+				authorObj = JSON.parse(authors);
+			} catch (e) {
+				// Failed to parse author data, log and proceed without
+				logger.warn('Failed to parse authors\' data: ' + authors);
+			}
 
 			// Put authors' data in a more usable object
 			var authorData = {};
-			for (var j = 0; j < authors.length; j += 1)
-				authorData[authors[j].id] = authors[j];
+			for (var j = 0; j < authorObj.length; j += 1)
+				authorData[authorObj[j]._id] = authorObj[j];
 
 			// Get user's votes for content
 			UserVote.find({
@@ -306,7 +322,7 @@ module.exports.getThread = function (req, res, next) {
 				}
 			}, function (vErr, votes) {
 				if (vErr)
-					errors.send('DBError', 'warn', res, 'Get thread error - error rertieving user\'s vote: ' + vErr);
+					errors.send('500', '1', 'warn', res, 'controllers.board.getThread', 'Error retrieving user\'s vote: ' + vErr);
 				else {
 
 					// Put user's votes data in a more usable object
@@ -351,8 +367,6 @@ module.exports.getThread = function (req, res, next) {
  *
  * @apiParam {String} title The title of the thread.
  * @apiParam {String} text The text of the thread.
- * @apiParam {String} country Two-letter country code of the thread.
- * @apiParam {String} language Two-letter language code of the thread.
  *
  * @apiError (400) error_name MissingData
  * @apiError (500) error_name DBError
@@ -362,18 +376,14 @@ module.exports.newThread = function (req, res, next) {
 	// Get and check required parameters
 	var title = (req.body.hasOwnProperty('title') ? req.body.title : -1);
 	var text = (req.body.hasOwnProperty('text') ? req.body.text : -1);
-	var country = (req.body.hasOwnProperty('country') ? req.body.country : -1);
-	var language = (req.body.hasOwnProperty('language') ? req.body.language : -1);
 
-	if (title === -1 || text === -1 || country === -1 || language === -1)
-		errors.send('MissingData', 'debug', res, 'New thread error - missing parameters: ' + JSON.stringify(req.body));
+	if (title === -1 || text === -1)
+		errors.send('400', '1', 'debug', res, 'controllers.board.newThread', 'Missing parameters: ' + JSON.stringify(req.body));
 	else {
 		// New thread data
 		var params = {
 			title: title,
 			text: text,
-			country: country,
-			language: language,
 			author: req.tokenUser.id
 		};
 		// Create new thread
@@ -381,7 +391,7 @@ module.exports.newThread = function (req, res, next) {
 		// Save new thread
 		thread.save(function (saveErr, saveRes) {
 			if (saveErr)
-				errors.send('DBError', 'warn', res, 'New board thread error: ' + saveErr);
+				errors.send('500', '1', 'warn', res, 'controllers.board.newThread', 'New board thread error: ' + saveErr);
 			else
 				res.status(200).send(saveRes);
 		});
@@ -415,7 +425,7 @@ module.exports.editThread = function (req, res, next) {
 	// Update existing thread
 	req.thread.edit(title, text, function (uErr, uRes) {
 		if (uErr)
-			errors.send('DBError', 'warn', res, 'Update board thread error: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.editThread', 'Update board thread error: ' + uErr);
 		else
 			res.status(200).send(uRes);
 	});
@@ -441,7 +451,7 @@ module.exports.removeThread = function (req, res, next) {
 		_id: req.thread.id
 	}, function (rErr, rRes) {
 		if (rErr)
-			errors.send('DBError', 'warn', res, 'Remove thread error: ' + rErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.removeThread', 'Remove board thread error: ' + rErr);
 		else
 			res.status(200).send(rRes);
 	});
@@ -474,7 +484,7 @@ module.exports.getMessage = function (req, res, next) {
 module.exports.newMessage = function (req, res, next) {
 	req.thread.newMessage(req.body.text, req.tokenUser.id, function (mErr, mRes) {
 		if (mErr)
-			errors.send('DBError', 'warn', res, 'New message error: ' + mErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.newMessage', 'New message error: ' + mErr);
 		else
 			res.status(200).send(mRes);
 	});
@@ -506,7 +516,7 @@ module.exports.editMessage = function (req, res, next) {
 	// Update existing thread
 	req.thread.editMessage(req.params.messageid, text, function (uErr, uRes) {
 		if (uErr)
-			errors.send('DBError', 'warn', res, 'Update board message error: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.editMessage', 'Update board message error: ' + uErr);
 		else
 			res.status(200).send(uRes);
 	});
@@ -531,7 +541,7 @@ module.exports.editMessage = function (req, res, next) {
 module.exports.removeMessage = function (req, res, next) {
 	req.thread.removeMessage(req.params.messageid, function (rErr, rRes) {
 		if (rErr)
-			errors.send('DBError', 'warn', res, 'Remove message error: ' + rErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.removeMessage', 'Remove board message error: ' + rErr);
 		else
 			res.status(200).send(rRes);
 	});
@@ -565,7 +575,7 @@ module.exports.getComment = function (req, res, next) {
 module.exports.newComment = function (req, res, next) {
 	req.thread.newComment(req.params.messageid, req.body.text, req.tokenUser.id, function (cErr, cRes) {
 		if (cErr)
-			errors.send('DBError', 'warn', res, 'New message error: ' + cErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.newComment', 'New board comment error: ' + cErr);
 		else
 			res.status(200).send(cRes);
 	});
@@ -598,7 +608,7 @@ module.exports.editComment = function (req, res, next) {
 	// Update existing thread
 	req.thread.editComment(req.params.messageid, req.params.commentid, text, function (uErr, uRes) {
 		if (uErr)
-			errors.send('DBError', 'warn', res, 'Update board message error: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.editComment', 'Update board comment error: ' + uErr);
 		else
 			res.status(200).send(uRes);
 	});
@@ -624,7 +634,7 @@ module.exports.editComment = function (req, res, next) {
 module.exports.removeComment = function (req, res, next) {
 	req.thread.removeComment(req.params.messageid, req.params.commentid, function (rErr, rRes) {
 		if (rErr)
-			errors.send('DBError', 'warn', res, 'Remove comment error: ' + rErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.removeComment', 'Remove board comment error: ' + rErr);
 		else
 			res.status(200).send(rRes);
 	});
@@ -650,7 +660,7 @@ module.exports.removeComment = function (req, res, next) {
 module.exports.upvoteThread = function (req, res, next) {
 	req.thread.upvote(req.previousVote, function (uErr, uRes) {
 		if (uErr)
-			errors.send('DBError', 'warn', res, 'Thread upvote error: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.upvoteThread', 'Thread upvote error: ' + uErr);
 		else {
 			var result = uRes.toJSON();
 			res.status(200).send({
@@ -682,7 +692,7 @@ module.exports.upvoteThread = function (req, res, next) {
 module.exports.downvoteThread = function (req, res, next) {
 	req.thread.downvote(req.previousVote, function (uErr, uRes) {
 		if (uErr)
-			errors.send('DBError', 'warn', res, 'Thread downvote error: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.downvoteThread', 'Thread downvote error: ' + uErr);
 		else {
 			var result = uRes.toJSON();
 			res.status(200).send({
@@ -715,7 +725,7 @@ module.exports.downvoteThread = function (req, res, next) {
 module.exports.upvoteMessage = function (req, res, next) {
 	req.thread.upvoteMessage(req.params.messageid, req.previousVote, function (uErr, uRes) {
 		if (uErr)
-			errors.send('DBError', 'warn', res, 'Message upvote error: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.upvoteMessage', 'Message upvote error: ' + uErr);
 		else {
 			var result = uRes.messages.id(req.params.messageid).toJSON();
 			res.status(200).send({
@@ -748,7 +758,7 @@ module.exports.upvoteMessage = function (req, res, next) {
 module.exports.downvoteMessage = function (req, res, next) {
 	req.thread.downvoteMessage(req.params.messageid, req.previousVote, function (uErr, uRes) {
 		if (uErr)
-			errors.send('DBError', 'warn', res, 'Message upvote error: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.downvoteMessage', 'Thread downvote error: ' + uErr);
 		else {
 			var result = uRes.messages.id(req.params.messageid).toJSON();
 			res.status(200).send({
@@ -782,7 +792,7 @@ module.exports.downvoteMessage = function (req, res, next) {
 module.exports.upvoteComment = function (req, res, next) {
 	req.thread.upvoteComment(req.params.messageid, req.params.commentid, req.previousVote, function (uErr, uRes) {
 		if (uErr)
-			errors.send('DBError', 'warn', res, 'Comment upvote error: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.upvoteComment', 'Comment upvote error: ' + uErr);
 		else {
 			var result = uRes.messages.id(req.params.messageid).comments.id(req.params.commentid).toJSON();
 			res.status(200).send({
@@ -816,7 +826,7 @@ module.exports.upvoteComment = function (req, res, next) {
 module.exports.downvoteComment = function (req, res, next) {
 	req.thread.downvoteComment(req.params.messageid, req.params.commentid, req.previousVote, function (uErr, uRes) {
 		if (uErr)
-			errors.send('DBError', 'warn', res, 'Comment upvote error: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.downvoteComment', 'Comment downvote error: ' + uErr);
 		else {
 			var result = uRes.messages.id(req.params.messageid).comments.id(req.params.commentid).toJSON();
 			res.status(200).send({
@@ -830,7 +840,7 @@ module.exports.downvoteComment = function (req, res, next) {
 	});
 };
 
-// Utility method to manage sotring and updating user's votes
+// Utility method to manage storing and updating user's votes
 var storeUserVote = function (user, content, previousVote, newVoteValue) {
 	if (!previousVote) {
 		// No previous vote, insert new vote in the db

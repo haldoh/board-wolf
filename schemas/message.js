@@ -5,7 +5,7 @@
 // Requires
 var mongoose = require('mongoose');
 
-var Comment = mongoose.model('BoardComment');
+var Comment = mongoose.xBoard.model('BoardComment');
 var CommentSchema = require('./comment').schema;
 
 // Schema for a board thread
@@ -133,6 +133,6 @@ BoardMessageSchema.methods.downvoteComment = function (commentId, prevVote, thre
 	com.downvote(prevVote, thread, this, callback);
 };
 
-module.exports = mongoose.model('BoardMessage', BoardMessageSchema);
+module.exports = mongoose.xBoard.model('BoardMessage', BoardMessageSchema);
 
 module.exports.schema = BoardMessageSchema;

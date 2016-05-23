@@ -12,4 +12,4 @@ var UserVoteSchema = new mongoose.Schema({
 	vote: { type: Number, required: true }
 });
 
-module.exports = mongoose.model('UserVote', UserVoteSchema);
+module.exports = mongoose.xBoard.model('UserVote', UserVoteSchema);

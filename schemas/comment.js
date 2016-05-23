@@ -78,6 +78,6 @@ BoardCommentSchema.methods.downvote = function (prevVote, thread, message, callb
 	});
 };
 
-module.exports = mongoose.model('BoardComment', BoardCommentSchema);
+module.exports = mongoose.xBoard.model('BoardComment', BoardCommentSchema);
 
 module.exports.schema = BoardCommentSchema;

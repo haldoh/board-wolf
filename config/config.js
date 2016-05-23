@@ -31,7 +31,7 @@ var config = {
 			token: 'localhost_web_token'
 		},
 		mongo: {
-			uri: 'mongodb://localhost:27017/board',
+			fullUri: 'mongodb://localhost:27017/board',
 			name: 'board'
 		}
 	},
@@ -50,7 +50,7 @@ var config = {
 			token: process.env.AUTH_TOKEN
 		},
 		mongo: {
-			uri: process.env.MONGOLAB_URI,
+			fullUri: process.env.MONGOLAB_URI,
 			name: 'board'
 		}
 	}

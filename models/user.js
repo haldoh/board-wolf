@@ -30,8 +30,8 @@ var authCall = function (path, method, token, cookieJar, data, callback) {
 		method: method,
 		followAllRedirects: true,
 		headers: {
-			'x-wolf-auth-platform': config.auth.platform,
-			'x-wolf-auth-token': config.auth.token
+			'x-wolf-platform': config.auth.platform,
+			'x-wolf-token': config.auth.token
 		}
 	};
 
