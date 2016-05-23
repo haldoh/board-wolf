@@ -413,9 +413,14 @@ module.exports.newThread = function (req, res, next) {
 						for (var j = 0; j < authorObj.length; j += 1)
 							authorData[authorObj[j]._id] = authorObj[j];
 						
-						saveRes.author = saveRes.author in authorData ? authorData[saveRes.author] : saveRes.author;
+						// Use the JSON version of the returned thread for manipulation
+						var returnThread = saveRes.toJSON();
 
-						res.status(200).send(saveRes);
+						// Add author data
+						returnThread.author = returnThread.author in authorData ? authorData[returnThread.author] : returnThread.author;
+
+						// Send back result
+						res.status(200).send(returnThread);
 					}
 				});
 			}
@@ -531,9 +536,14 @@ module.exports.newMessage = function (req, res, next) {
 					for (var j = 0; j < authorObj.length; j += 1)
 						authorData[authorObj[j]._id] = authorObj[j];
 					
-					mRes.author = mRes.author in authorData ? authorData[mRes.author] : mRes.author;
+					// Use the JSON version of the returned message for manipulation
+					var returnMessage = mRes.toJSON();
 
-					res.status(200).send(mRes);
+					// Add author data
+					returnMessage.author = returnMessage.author in authorData ? authorData[returnMessage.author] : returnMessage.author;
+
+					// Send back result
+					res.status(200).send(returnMessage);
 				}
 			});
 		}
@@ -647,9 +657,14 @@ module.exports.newComment = function (req, res, next) {
 					for (var j = 0; j < authorObj.length; j += 1)
 						authorData[authorObj[j]._id] = authorObj[j];
 					
-					cRes.author = cRes.author in authorData ? authorData[cRes.author] : cRes.author;
+					// Use the JSON version of the returned thread for manipulation
+					var returnComment = cRes.toJSON();
 
-					res.status(200).send(cRes);
+					// Add author data
+					returnComment.author = returnComment.author in authorData ? authorData[returnComment.author] : returnComment.author;
+
+					// Send back result
+					res.status(200).send(returnComment);
 				}
 			});
 		}
