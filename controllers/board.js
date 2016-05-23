@@ -295,10 +295,10 @@ module.exports.getThread = function (req, res, next) {
 		}
 	}
 
-	// Get threads' authors data
+	// Get thread's authors data
 	User.getByIds(authorsIds, req.headers['x-wolf-user-token'], function (uErr, uResp, authors) {
 		if (uErr)
-			errors.send('500', '1', 'warn', res, 'controllers.board.listThreads', 'Error retrieving authors\' data: ' + uErr);
+			errors.send('500', '1', 'warn', res, 'controllers.board.getThread', 'Error retrieving authors\' data: ' + uErr);
 		else {
 
 			var authorObj = [];
@@ -392,8 +392,33 @@ module.exports.newThread = function (req, res, next) {
 		thread.save(function (saveErr, saveRes) {
 			if (saveErr)
 				errors.send('500', '1', 'warn', res, 'controllers.board.newThread', 'New board thread error: ' + saveErr);
-			else
-				res.status(200).send(saveRes);
+			else {
+
+				// Get thread's authors data
+				User.getByIds([req.tokenUser.id], req.headers['x-wolf-user-token'], function (uErr, uResp, authors) {
+					if (uErr)
+						errors.send('500', '1', 'warn', res, 'controllers.board.getThread', 'Error retrieving authors\' data: ' + uErr);
+					else {
+
+						var authorObj = [];
+						try {
+							authorObj = JSON.parse(authors);
+						} catch (e) {
+							// Failed to parse author data, log and proceed without
+							logger.warn('Failed to parse authors\' data: ' + authors);
+						}
+
+						// Put authors' data in a more usable object
+						var authorData = {};
+						for (var j = 0; j < authorObj.length; j += 1)
+							authorData[authorObj[j]._id] = authorObj[j];
+						
+						saveRes.author = saveRes.author in authorData ? authorData[saveRes.author] : saveRes.author;
+
+						res.status(200).send(saveRes);
+					}
+				});
+			}
 		});
 	}
 };
@@ -485,8 +510,33 @@ module.exports.newMessage = function (req, res, next) {
 	req.thread.newMessage(req.body.text, req.tokenUser.id, function (mErr, mRes) {
 		if (mErr)
 			errors.send('500', '1', 'warn', res, 'controllers.board.newMessage', 'New message error: ' + mErr);
-		else
-			res.status(200).send(mRes);
+		else {
+
+			// Get thread's authors data
+			User.getByIds([req.tokenUser.id], req.headers['x-wolf-user-token'], function (uErr, uResp, authors) {
+				if (uErr)
+					errors.send('500', '1', 'warn', res, 'controllers.board.getThread', 'Error retrieving authors\' data: ' + uErr);
+				else {
+
+					var authorObj = [];
+					try {
+						authorObj = JSON.parse(authors);
+					} catch (e) {
+						// Failed to parse author data, log and proceed without
+						logger.warn('Failed to parse authors\' data: ' + authors);
+					}
+
+					// Put authors' data in a more usable object
+					var authorData = {};
+					for (var j = 0; j < authorObj.length; j += 1)
+						authorData[authorObj[j]._id] = authorObj[j];
+					
+					mRes.author = mRes.author in authorData ? authorData[mRes.author] : mRes.author;
+
+					res.status(200).send(mRes);
+				}
+			});
+		}
 	});
 };
 
@@ -576,8 +626,33 @@ module.exports.newComment = function (req, res, next) {
 	req.thread.newComment(req.params.messageid, req.body.text, req.tokenUser.id, function (cErr, cRes) {
 		if (cErr)
 			errors.send('500', '1', 'warn', res, 'controllers.board.newComment', 'New board comment error: ' + cErr);
-		else
-			res.status(200).send(cRes);
+		else {
+
+			// Get thread's authors data
+			User.getByIds([req.tokenUser.id], req.headers['x-wolf-user-token'], function (uErr, uResp, authors) {
+				if (uErr)
+					errors.send('500', '1', 'warn', res, 'controllers.board.getThread', 'Error retrieving authors\' data: ' + uErr);
+				else {
+
+					var authorObj = [];
+					try {
+						authorObj = JSON.parse(authors);
+					} catch (e) {
+						// Failed to parse author data, log and proceed without
+						logger.warn('Failed to parse authors\' data: ' + authors);
+					}
+
+					// Put authors' data in a more usable object
+					var authorData = {};
+					for (var j = 0; j < authorObj.length; j += 1)
+						authorData[authorObj[j]._id] = authorObj[j];
+					
+					cRes.author = cRes.author in authorData ? authorData[cRes.author] : cRes.author;
+
+					res.status(200).send(cRes);
+				}
+			});
+		}
 	});
 };
 
