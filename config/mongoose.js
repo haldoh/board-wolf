@@ -78,7 +78,7 @@ var dbSchemaLink = function (conn, dbName) {
 		case 'board':
 
 			// Cache databases refs
-			mongoose.xBoard = conn.useDb('board');
+			mongoose.xBoard = conn;
 
 			// Models
 			require('../schemas/comment');
