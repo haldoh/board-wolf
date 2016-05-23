@@ -206,8 +206,9 @@ module.exports.listThreads = function (req, res, next) {
 								for (var l = 0; l < threads.length; l += 1) {
 									tmpId = threads[l]._id;
 									threadsData[tmpId] = threads[l].toJSON();
-									threadsData[tmpId].voted = (userVotes.hasOwnProperty(tmpId) ? userVotes[tmpId] : 0);
-									threadsData[tmpId].author = (authorData.hasOwnProperty(threads[l].author) ? authorData[threads[l].author] : {});
+									threadsData[tmpId].voted = userVotes.hasOwnProperty(tmpId) ? userVotes[tmpId] : 0;
+									threadsData[tmpId].author = authorData.hasOwnProperty(threads[l].author) ? authorData[threads[l].author] : {};
+									threadsData[tmpId].owned = threadsData[tmpId].author._id == req.tokenUser.id ? true : false;
 								}
 
 								// Return data
@@ -331,16 +332,19 @@ module.exports.getThread = function (req, res, next) {
 						userVotes[votes[k].content] = votes[k].vote;
 
 					// Fill in thread data
-					jsonThread.voted = (jsonThread._id in userVotes ? userVotes[jsonThread._id] : 0);
-					jsonThread.author = (jsonThread.author in authorData ? authorData[jsonThread.author] : {});
+					jsonThread.voted = jsonThread._id in userVotes ? userVotes[jsonThread._id] : 0;
+					jsonThread.author = jsonThread.author in authorData ? authorData[jsonThread.author] : {};
+					jsonThread.owned = jsonThread.author._id == req.tokenUser.id ? true : false;
 
 					// Fill in messages and comments data
 					for (var i = 0; i < jsonThread.messages.length; i += 1) {
-						jsonThread.messages[i].voted = (jsonThread.messages[i]._id in userVotes ? userVotes[jsonThread.messages[i]._id] : 0);
-						jsonThread.messages[i].author = (jsonThread.messages[i].author in authorData ? authorData[jsonThread.messages[i].author] : {});
+						jsonThread.messages[i].voted = jsonThread.messages[i]._id in userVotes ? userVotes[jsonThread.messages[i]._id] : 0;
+						jsonThread.messages[i].author = jsonThread.messages[i].author in authorData ? authorData[jsonThread.messages[i].author] : {};
+						jsonThread.messages[i].owned = jsonThread.messages[i].author._id == req.tokenUser.id ? true : false;
 						for (var j = 0; j < jsonThread.messages[i].comments.length; j += 1) {
-							jsonThread.messages[i].comments[j].voted = (jsonThread.messages[i].comments[j]._id in userVotes ? userVotes[jsonThread.messages[i].comments[j]._id] : 0);
-							jsonThread.messages[i].comments[j].author = (jsonThread.messages[i].comments[j].author in authorData ? authorData[jsonThread.messages[i].comments[j].author] : {});
+							jsonThread.messages[i].comments[j].voted = jsonThread.messages[i].comments[j]._id in userVotes ? userVotes[jsonThread.messages[i].comments[j]._id] : 0;
+							jsonThread.messages[i].comments[j].author = jsonThread.messages[i].comments[j].author in authorData ? authorData[jsonThread.messages[i].comments[j].author] : {};
+							jsonThread.messages[i].comments[j].owned = jsonThread.messages[i].comments[j].author._id == req.tokenUser.id ? true : false;
 						}
 					}
 
@@ -418,6 +422,7 @@ module.exports.newThread = function (req, res, next) {
 
 						// Add author data
 						returnThread.author = returnThread.author in authorData ? authorData[returnThread.author] : returnThread.author;
+						returnThread.owned = returnThread.author._id == req.tokenUser.id ? true : false;
 
 						// Send back result
 						res.status(200).send(returnThread);
@@ -541,6 +546,7 @@ module.exports.newMessage = function (req, res, next) {
 
 					// Add author data
 					returnMessage.author = returnMessage.author in authorData ? authorData[returnMessage.author] : returnMessage.author;
+					returnMessage.owned = returnMessage.author._id == req.tokenUser.id ? true : false;
 
 					// Send back result
 					res.status(200).send(returnMessage);
@@ -662,6 +668,7 @@ module.exports.newComment = function (req, res, next) {
 
 					// Add author data
 					returnComment.author = returnComment.author in authorData ? authorData[returnComment.author] : returnComment.author;
+					returnComment.owned = returnComment.author._id == req.tokenUser.id ? true : false;
 
 					// Send back result
 					res.status(200).send(returnComment);
