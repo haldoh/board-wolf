@@ -50,7 +50,7 @@ var config = {
 			token: process.env.AUTH_TOKEN
 		},
 		mongo: {
-			fullUri: process.env.MONGOLAB_URI,
+			fullUri: process.env.MONGODB_URI,
 			name: 'board'
 		}
 	}
