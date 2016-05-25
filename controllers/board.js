@@ -455,7 +455,7 @@ module.exports.editThread = function (req, res, next) {
 
 	// Manage input
 	var title = (req.body.hasOwnProperty('title') && req.body.title && req.body.title !== '' ? req.body.title : false);
-	var text = (req.body.hasOwnProperty('text') && req.body.title && req.body.title !== '' ? req.body.text : false);
+	var text = (req.body.hasOwnProperty('text') && req.body.text && req.body.text !== '' ? req.body.text : false);
 
 	// Update existing thread
 	req.thread.edit(title, text, function (uErr, uRes) {
@@ -577,7 +577,7 @@ module.exports.newMessage = function (req, res, next) {
 module.exports.editMessage = function (req, res, next) {
 
 	// Manage input
-	var text = (req.body.hasOwnProperty('text') && req.body.title && req.body.title !== '' ? req.body.text : false);
+	var text = (req.body.hasOwnProperty('text') && req.body.text && req.body.text !== '' ? req.body.text : false);
 
 	// Update existing thread
 	req.thread.editMessage(req.params.messageid, text, function (uErr, uRes) {
