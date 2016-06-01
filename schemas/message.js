@@ -28,6 +28,7 @@ BoardMessageSchema.methods.edit = function (text, thread, callback) {
 	this.updated = time;
 	// Save changes
 	this.save(function (cErr, cRes) {
+		console.log(cRes);
 		if (cErr)
 			callback(cErr, null);
 		else {

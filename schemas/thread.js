@@ -112,7 +112,7 @@ BoardThreadSchema.methods.newComment = function (messageId, text, author, callba
 	msg.newComment(text, author, this, callback);
 };
 
-BoardThreadSchema.methods.editMessage = function (messageId, commentId, text, callback) {
+BoardThreadSchema.methods.editComment = function (messageId, commentId, text, callback) {
 	var msg = this.messages.id(messageId);
 	msg.editComment(commentId, text, this, callback);
 };

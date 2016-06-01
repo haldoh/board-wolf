@@ -584,7 +584,7 @@ module.exports.editMessage = function (req, res, next) {
 		if (uErr)
 			errors.send('500', '1', 'warn', res, 'controllers.board.editMessage', 'Update board message error: ' + uErr);
 		else
-			res.status(200).send(uRes);
+			res.status(200).send(req.thread.getMessage(req.params.messageid));
 	});
 };
 
@@ -700,14 +700,14 @@ module.exports.newComment = function (req, res, next) {
 module.exports.editComment = function (req, res, next) {
 
 	// Manage input
-	var text = (req.body.hasOwnProperty('text') && req.body.title && req.body.title !== '' ? req.body.text : false);
+	var text = (req.body.hasOwnProperty('text') && req.body.text && req.body.text !== '' ? req.body.text : false);
 
 	// Update existing thread
 	req.thread.editComment(req.params.messageid, req.params.commentid, text, function (uErr, uRes) {
 		if (uErr)
 			errors.send('500', '1', 'warn', res, 'controllers.board.editComment', 'Update board comment error: ' + uErr);
 		else
-			res.status(200).send(uRes);
+			res.status(200).send(req.thread.getComment(req.params.messageid, req.params.commentid));
 	});
 };
 

@@ -29,7 +29,9 @@ BoardCommentSchema.methods.edit = function (text, thread, message, callback) {
 					callback(cErr2, null);
 				else {
 					thread.updated = (thread.updated <= time ? time : thread.updated);
-					thread.save(callback);
+					thread.save(function (tErr, tRes) {
+						return callback(tErr, cRes);
+					});
 				}
 			});
 		}
