@@ -137,6 +137,8 @@ module.exports.listThreads = function (req, res, next) {
 
 	// Sort by update time
 	var sort = {
+		category: 1,
+		top: -1,
 		updated: -1
 	};
 
@@ -153,7 +155,7 @@ module.exports.listThreads = function (req, res, next) {
 		else {
 
 			// Save data for next queries, and reorganize threads
-			var threadsData = {};
+			var threadsData = [];
 			var users = [];
 			var threadIds = [];
 			for (var i = 0; i < threads.length; i += 1) {
@@ -203,12 +205,20 @@ module.exports.listThreads = function (req, res, next) {
 
 								// Put data inside the threads object and return it
 								var tmpId = '';
+								var tempThread = {};
 								for (var l = 0; l < threads.length; l += 1) {
+									// ID of the thread being elaborated
 									tmpId = threads[l]._id;
-									threadsData[tmpId] = threads[l].toJSON();
-									threadsData[tmpId].voted = userVotes.hasOwnProperty(tmpId) ? userVotes[tmpId] : 0;
-									threadsData[tmpId].author = authorData.hasOwnProperty(threads[l].author) ? authorData[threads[l].author] : {};
-									threadsData[tmpId].owned = threadsData[tmpId].author._id == req.tokenUser.id ? true : false;
+									// Thread
+									tempThread = threads[l].toJSON();
+
+									// Fix data of thread
+									tempThread.voted = userVotes.hasOwnProperty(tmpId) ? userVotes[tmpId] : 0;
+									tempThread.author = authorData.hasOwnProperty(threads[l].author) ? authorData[threads[l].author] : {};
+									tempThread.owned = tempThread.author._id == req.tokenUser.id ? true : false;
+
+									// Push into array
+									threadsData.push(tempThread);
 								}
 
 								// Return data
@@ -380,15 +390,19 @@ module.exports.newThread = function (req, res, next) {
 	// Get and check required parameters
 	var title = (req.body.hasOwnProperty('title') ? req.body.title : -1);
 	var text = (req.body.hasOwnProperty('text') ? req.body.text : -1);
+	var category = (req.body.hasOwnProperty('category') ? req.body.category : -1);
+	var top = (req.body.hasOwnProperty('top') ? req.body.top : -1);
 
-	if (title === -1 || text === -1)
+	if (title === -1 || text === -1 || category === -1 || top === -1)
 		errors.send('400', '1', 'debug', res, 'controllers.board.newThread', 'Missing parameters: ' + JSON.stringify(req.body));
 	else {
 		// New thread data
 		var params = {
 			title: title,
 			text: text,
-			author: req.tokenUser.id
+			author: req.tokenUser.id,
+			category: category.toLowerCase(),
+			top: top
 		};
 		// Create new thread
 		var thread = new BoardThread(params);
@@ -454,11 +468,13 @@ module.exports.newThread = function (req, res, next) {
 module.exports.editThread = function (req, res, next) {
 
 	// Manage input
-	var title = (req.body.hasOwnProperty('title') && req.body.title && req.body.title !== '' ? req.body.title : false);
-	var text = (req.body.hasOwnProperty('text') && req.body.text && req.body.text !== '' ? req.body.text : false);
+	var title = (req.body.hasOwnProperty('title') ? req.body.title : false);
+	var text = (req.body.hasOwnProperty('text') ? req.body.text : false);
+	var category = (req.body.hasOwnProperty('category') ? req.body.category : -1);
+	var top = (req.body.hasOwnProperty('top') ? req.body.top : -1);
 
 	// Update existing thread
-	req.thread.edit(title, text, function (uErr, uRes) {
+	req.thread.edit(title, text, category, top, function (uErr, uRes) {
 		if (uErr)
 			errors.send('500', '1', 'warn', res, 'controllers.board.editThread', 'Update board thread error: ' + uErr);
 		else

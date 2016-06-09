@@ -13,8 +13,10 @@ var BoardThreadSchema = new mongoose.Schema({
 	title: { type: String, required: true },
 	text: { type: String, required: true },
 	author: { type: String, required: true },
+	category: { type: String },
+	top: { type: Boolean },
 	time: { type: Date, 'default': Date.now },
-	updated: { type: Date, index: true, 'default': Date.now },
+	updated: { type: Date, 'default': Date.now },
 	upvotes: { type: Number, 'default': 0 },
 	downvotes: { type: Number, 'default': 0 },
 	messages: [MessageSchema],
@@ -24,10 +26,12 @@ var BoardThreadSchema = new mongoose.Schema({
 
 /*** THREAD ***/
 
-BoardThreadSchema.methods.edit = function (title, text, callback) {
+BoardThreadSchema.methods.edit = function (title, text, category, top, callback) {
 	// Update fields if new value was given
-	this.title = (title ? title : this.title);
-	this.text = (text ? text : this.text);
+	this.title = title ? title : this.title;
+	this.text = text ? text : this.text;
+	this.category = category ? category : this.category;
+	this.top = top;
 	// Update time
 	this.updated = new Date();
 	// Save changes
